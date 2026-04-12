@@ -1,0 +1,37 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.app-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.app-tagline {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.app-placeholder {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+}
