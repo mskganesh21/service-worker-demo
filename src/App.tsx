@@ -1,16 +1,20 @@
 import './App.css'
+import { Route, Routes } from 'react-router-dom'
+import { NotesProvider } from './context/NotesProvider'
+import { AppLayout } from './components/AppLayout'
+import { NoteEditPage } from './pages/NoteEditPage'
+import { NotesDashboardPage } from './pages/NotesDashboardPage'
 
 function App() {
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1 className="app-title">Offline Notes PWA</h1>
-        <p className="app-tagline">Local notes demo — service worker wiring comes later.</p>
-      </header>
-      <main className="app-main">
-        <p className="app-placeholder">Notes UI goes here (Phase 2).</p>
-      </main>
-    </div>
+    <NotesProvider>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route index element={<NotesDashboardPage />} />
+          <Route path="notes/:noteId" element={<NoteEditPage />} />
+        </Route>
+      </Routes>
+    </NotesProvider>
   )
 }
 
