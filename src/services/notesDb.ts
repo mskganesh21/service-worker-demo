@@ -29,20 +29,45 @@ function openDb(): Promise<IDBDatabase> {
 export async function loadNotesFromDb(): Promise<unknown> {
   const db = await openDb()
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly')
-    const store = tx.objectStore(STORE_NAME)
-    const request = store.get(NOTES_KEY)
-
-    request.onsuccess = () => {
-      resolve(request.result)
-    }
-
-    request.onerror = () => {
-      reject(request.error ?? new Error('Failed to read notes from IndexedDB'))
-    }
-
-    tx.oncomplete = () => {
+    let settled = false
+    const finishWithError = (error: Error) => {
+      if (settled) return
+      settled = true
       db.close()
+      reject(error)
+    }
+
+    try {
+      const tx = db.transaction(STORE_NAME, 'readonly')
+      const store = tx.objectStore(STORE_NAME)
+      const request = store.get(NOTES_KEY)
+
+      request.onsuccess = () => {
+        if (settled) return
+        settled = true
+        db.close()
+        resolve(request.result)
+      }
+
+      request.onerror = () => {
+        finishWithError(
+          request.error ?? new Error('Failed to read notes from IndexedDB'),
+        )
+      }
+
+      tx.onerror = () => {
+        finishWithError(
+          tx.error ?? new Error('IndexedDB transaction failed while reading notes'),
+        )
+      }
+
+      tx.onabort = () => {
+        finishWithError(new Error('IndexedDB transaction aborted while reading notes'))
+      }
+    } catch (error) {
+      finishWithError(
+        error instanceof Error ? error : new Error('Failed to read notes from IndexedDB'),
+      )
     }
   })
 }
@@ -50,17 +75,45 @@ export async function loadNotesFromDb(): Promise<unknown> {
 export async function saveNotesToDb(notes: Note[]): Promise<void> {
   const db = await openDb()
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    const store = tx.objectStore(STORE_NAME)
-    store.put(notes, NOTES_KEY)
-
-    tx.oncomplete = () => {
+    let settled = false
+    const finishWithError = (error: Error) => {
+      if (settled) return
+      settled = true
       db.close()
-      resolve()
+      reject(error)
     }
 
-    tx.onerror = () => {
-      reject(tx.error ?? new Error('Failed to save notes to IndexedDB'))
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      const request = store.put(notes, NOTES_KEY)
+
+      request.onerror = () => {
+        finishWithError(
+          request.error ?? new Error('Failed to save notes to IndexedDB'),
+        )
+      }
+
+      tx.oncomplete = () => {
+        if (settled) return
+        settled = true
+        db.close()
+        resolve()
+      }
+
+      tx.onerror = () => {
+        finishWithError(
+          tx.error ?? new Error('IndexedDB transaction failed while saving notes'),
+        )
+      }
+
+      tx.onabort = () => {
+        finishWithError(new Error('IndexedDB transaction aborted while saving notes'))
+      }
+    } catch (error) {
+      finishWithError(
+        error instanceof Error ? error : new Error('Failed to save notes to IndexedDB'),
+      )
     }
   })
 }

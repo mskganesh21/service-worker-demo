@@ -12,8 +12,8 @@ export function Header({ onAddNote }: HeaderProps) {
           <h1 className="app-title">Offline Notes PWA</h1>
         </Link>
         <p className="app-tagline">
-          Dashboard of your notes — tap a card to edit. Persistence and service
-          worker in later phases.
+          Notes persist locally. Service-worker status and update lifecycle come
+          next.
         </p>
       </div>
       <div className="app-header-actions">
