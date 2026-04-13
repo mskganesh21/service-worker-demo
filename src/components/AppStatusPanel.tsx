@@ -7,6 +7,7 @@ type AppStatusPanelProps = {
   noteCount: number
   serviceWorkerStatus: 'not-registered' | 'registered' | 'offline-ready' | 'update-available'
   hasUpdate: boolean
+  showUpdatedNotice: boolean
 }
 
 function prettyWorkerStatus(status: AppStatusPanelProps['serviceWorkerStatus']) {
@@ -29,6 +30,7 @@ export function AppStatusPanel({
   noteCount,
   serviceWorkerStatus,
   hasUpdate,
+  showUpdatedNotice,
 }: AppStatusPanelProps) {
   const reachabilityLabel =
     reachabilityStatus === 'checking'
@@ -60,6 +62,9 @@ export function AppStatusPanel({
         <span className={`status-chip ${hasUpdate ? 'status-chip--warn' : 'status-chip--neutral'}`}>
           Update: {hasUpdate ? 'Available' : 'None'}
         </span>
+        {showUpdatedNotice ? (
+          <span className="status-chip status-chip--ok">Update: Activated</span>
+        ) : null}
       </div>
       <p className="status-debug-text">Debug: {noteCount} notes currently in memory.</p>
     </section>

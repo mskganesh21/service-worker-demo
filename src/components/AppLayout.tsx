@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useNotesContext } from '../hooks/useNotesContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
@@ -8,6 +9,12 @@ import { Header } from './Header'
 import { UpdateBanner } from './UpdateBanner'
 
 export function AppLayout() {
+  const [showUpdatedNotice, setShowUpdatedNotice] = useState(() => {
+    const marker = sessionStorage.getItem('sw-update-applied')
+    if (!marker) return false
+    sessionStorage.removeItem('sw-update-applied')
+    return true
+  })
   const { notes, isHydrated } = useNotesContext()
   const isOnline = useOnlineStatus()
   const reachabilityStatus = useReachabilityStatus(isOnline)
@@ -19,8 +26,19 @@ export function AppLayout() {
   }
 
   const handleRefresh = () => {
+    sessionStorage.setItem('sw-update-applied', '1')
     void applyUpdate()
   }
+
+  useEffect(() => {
+    if (!showUpdatedNotice) return
+    const timeoutId = window.setTimeout(() => {
+      setShowUpdatedNotice(false)
+    }, 5000)
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [showUpdatedNotice])
 
   return (
     <div className="app">
@@ -33,6 +51,7 @@ export function AppLayout() {
         noteCount={notes.length}
         serviceWorkerStatus={serviceWorkerStatus}
         hasUpdate={hasUpdate}
+        showUpdatedNotice={showUpdatedNotice}
       />
       <main className="app-main">
         <Outlet />
