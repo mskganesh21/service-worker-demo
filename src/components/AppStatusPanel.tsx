@@ -1,5 +1,8 @@
+import type { ReachabilityStatus } from '../hooks/useReachabilityStatus'
+
 type AppStatusPanelProps = {
   isOnline: boolean
+  reachabilityStatus: ReachabilityStatus
   isHydrated: boolean
   noteCount: number
   serviceWorkerStatus: 'not-registered' | 'registered' | 'offline-ready' | 'update-available'
@@ -21,11 +24,26 @@ function prettyWorkerStatus(status: AppStatusPanelProps['serviceWorkerStatus']) 
 
 export function AppStatusPanel({
   isOnline,
+  reachabilityStatus,
   isHydrated,
   noteCount,
   serviceWorkerStatus,
   hasUpdate,
 }: AppStatusPanelProps) {
+  const reachabilityLabel =
+    reachabilityStatus === 'checking'
+      ? 'Checking'
+      : reachabilityStatus === 'reachable'
+        ? 'Reachable'
+        : 'Unreachable'
+
+  const reachabilityClass =
+    reachabilityStatus === 'checking'
+      ? 'status-chip--pending'
+      : reachabilityStatus === 'reachable'
+        ? 'status-chip--ok'
+        : 'status-chip--warn'
+
   return (
     <section className="status-panel" aria-label="App status">
       <div className="status-chip-list">
@@ -35,6 +53,7 @@ export function AppStatusPanel({
         <span className={`status-chip ${isHydrated ? 'status-chip--ok' : 'status-chip--pending'}`}>
           Notes: {isHydrated ? 'Ready' : 'Loading'}
         </span>
+        <span className={`status-chip ${reachabilityClass}`}>Server: {reachabilityLabel}</span>
         <span className="status-chip status-chip--neutral">
           SW: {prettyWorkerStatus(serviceWorkerStatus)}
         </span>
