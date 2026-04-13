@@ -3,20 +3,40 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useNotesContext } from '../hooks/useNotesContext'
 import { NoteEditor } from '../components/NoteEditor'
 
+const NEW_NOTE_SEGMENT = 'new'
+
 export function NoteEditPage() {
   const { noteId } = useParams<{ noteId: string }>()
-  const { notes, updateNote, deleteNote } = useNotesContext()
+  const { notes, addNote, updateNote, deleteNote } = useNotesContext()
   const navigate = useNavigate()
 
-  const note = noteId ? notes.find((n) => n.id === noteId) : undefined
+  const isCreate = noteId === NEW_NOTE_SEGMENT
+  const note = !isCreate && noteId ? notes.find((n) => n.id === noteId) : undefined
 
-  const handleUpdate = useCallback(
+  const handleSaveNew = useCallback(
+    (title: string, body: string) => {
+      addNote(title, body)
+      navigate('/', { replace: true })
+    },
+    [addNote, navigate],
+  )
+
+  const handleCancelNew = useCallback(() => {
+    navigate('/', { replace: true })
+  }, [navigate])
+
+  const handleSaveEdit = useCallback(
     (title: string, body: string) => {
       if (!noteId) return
       updateNote(noteId, title, body)
+      navigate('/', { replace: true })
     },
-    [noteId, updateNote],
+    [noteId, updateNote, navigate],
   )
+
+  const handleCancelEdit = useCallback(() => {
+    navigate('/', { replace: true })
+  }, [navigate])
 
   const handleDelete = useCallback(() => {
     if (!noteId) return
@@ -24,7 +44,30 @@ export function NoteEditPage() {
     navigate('/', { replace: true })
   }, [noteId, deleteNote, navigate])
 
-  if (!noteId || !note) {
+  if (!noteId) {
+    return <Navigate to="/" replace />
+  }
+
+  if (isCreate) {
+    return (
+      <div className="edit-page">
+        <div className="edit-page-toolbar">
+          <Link to="/" className="link-back">
+            ← All notes
+          </Link>
+        </div>
+        <div className="edit-page-surface">
+          <NoteEditor
+            mode="create"
+            onSave={handleSaveNew}
+            onCancel={handleCancelNew}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  if (!note) {
     return <Navigate to="/" replace />
   }
 
@@ -38,8 +81,10 @@ export function NoteEditPage() {
       <div className="edit-page-surface">
         <NoteEditor
           key={note.id}
+          mode="edit"
           note={note}
-          onChange={handleUpdate}
+          onSave={handleSaveEdit}
+          onCancel={handleCancelEdit}
           onDelete={handleDelete}
         />
       </div>

@@ -300,6 +300,16 @@
   background: #fef2f2;
 }
 
+.btn-secondary {
+  background: #fff;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+}
+
 @media (max-width: 480px) {
   .app-header {
     flex-direction: column;

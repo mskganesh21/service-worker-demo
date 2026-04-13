@@ -47,13 +47,13 @@ export function useNotes() {
     [notes],
   )
 
-  const addNote = useCallback((): string => {
+  const addNote = useCallback((title: string, body: string): string => {
     const id = crypto.randomUUID()
     const now = Date.now()
     const note: Note = {
       id,
-      title: '',
-      body: '',
+      title,
+      body,
       createdAt: now,
       updatedAt: now,
     }

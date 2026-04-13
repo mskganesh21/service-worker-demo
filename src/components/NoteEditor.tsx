@@ -1,69 +1,41 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { Note } from '../types/note'
-import { isNoteNew } from '../utils/noteMeta'
 
 type NoteEditorProps = {
-  note: Note
-  onChange: (title: string, body: string) => void
-  onDelete: () => void
+  mode: 'create' | 'edit'
+  /** Required when mode is 'edit'. */
+  note?: Note
+  onSave: (title: string, body: string) => void
+  onCancel: () => void
+  onDelete?: () => void
 }
 
-export function NoteEditor({ note, onChange, onDelete }: NoteEditorProps) {
-  const [title, setTitle] = useState(note.title)
-  const [body, setBody] = useState(note.body)
-  const noteRef = useRef(note)
-  const debounceTimerRef = useRef<number | null>(null)
+export function NoteEditor({ mode, note, onSave, onCancel, onDelete }: NoteEditorProps) {
+  const [title, setTitle] = useState(() => (mode === 'edit' && note ? note.title : ''))
+  const [body, setBody] = useState(() => (mode === 'edit' && note ? note.body : ''))
 
-  useEffect(() => {
-    noteRef.current = note
-  }, [note])
+  const handleSave = useCallback(() => {
+    onSave(title, body)
+  }, [onSave, title, body])
 
-  const clearDebounce = useCallback(() => {
-    if (debounceTimerRef.current !== null) {
-      window.clearTimeout(debounceTimerRef.current)
-      debounceTimerRef.current = null
-    }
-  }, [])
-
-  const handlePrimaryAction = useCallback(() => {
-    clearDebounce()
-    const latest = noteRef.current
-    if (isNoteNew(latest)) {
-      onChange(title, body)
-      return
-    }
-    if (title === latest.title && body === latest.body) return
-    onChange(title, body)
-  }, [title, body, onChange, clearDebounce])
-
-  useEffect(() => {
-    const scheduledForId = note.id
-    clearDebounce()
-    debounceTimerRef.current = window.setTimeout(() => {
-      debounceTimerRef.current = null
-      const latest = noteRef.current
-      if (latest.id !== scheduledForId) return
-      if (title === latest.title && body === latest.body) return
-      onChange(title, body)
-    }, 300)
-    return () => {
-      clearDebounce()
-    }
-  }, [title, body, note.id, onChange, clearDebounce])
-
-  const primaryLabel = isNoteNew(note) ? 'Add' : 'Update'
+  const primaryLabel = mode === 'create' ? 'Save' : 'Update'
 
   return (
     <div className="note-editor">
       <div className="note-editor-toolbar">
         <div className="note-editor-toolbar-actions">
-          <button type="button" className="btn btn-primary" onClick={handlePrimaryAction}>
+          <button type="button" className="btn btn-primary" onClick={handleSave}>
             {primaryLabel}
           </button>
+          <button type="button" className="btn btn-secondary" onClick={onCancel}>
+            Cancel
+          </button>
         </div>
-        <button type="button" className="btn btn-danger" onClick={onDelete}>
-          Delete
-        </button>
+        {mode === 'edit' && onDelete ? (
+          <button type="button" className="btn btn-danger" onClick={onDelete}>
+            Delete
+          </button>
+        ) : null}
       </div>
       <label className="field">
         <span className="field-label">Title</span>
